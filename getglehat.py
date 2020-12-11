@@ -61,7 +61,7 @@ if __name__ == "__main__":
         eye_roi_gray = img_gray[y:y+h,x:x+w]
         eyes = cascade_eye.detectMultiScale(eye_roi_gray)
 
-        EYE_ADJUST = 1
+        EYE_ADJUST = 0
 
         if len(eyes) == 2:
             dx = eyes[1][0] - eyes[0][0]
@@ -74,8 +74,8 @@ if __name__ == "__main__":
                 eye_tilt = math.atan(dy / dx)
 
         # find bounding rect for hat, adjusting for eye tilt
-        tilt_dx = int(math.cos(eye_tilt) * w/EYE_ADJUST)
-        tilt_dy = int(math.sin(eye_tilt) * h/EYE_ADJUST)
+        tilt_dx = int(math.cos(eye_tilt) * EYE_ADJUST)
+        tilt_dy = int(math.sin(eye_tilt) * EYE_ADJUST)
 
         hat_x1 = face_x2 - int(w/2) - int(hat_width/2.25) + tilt_dx
         hat_y1 = face_y1 - int(h*0.4) + tilt_dy
@@ -88,12 +88,23 @@ if __name__ == "__main__":
         mask_res = cv2.resize(original_mask, (hat_width,hat_height), interpolation = cv2.INTER_AREA)
         mask_inv_res = cv2.resize(original_mask_inv, (hat_width,hat_height), interpolation = cv2.INTER_AREA)
 
-        roi = img[hat_y1:hat_y2,hat_x1:hat_x2]
+        # clip hat img/masks to image edges
+        ldx = 0 if hat_x1 >= 0 else 0 - hat_x1
+        rdx = 0 if hat_x2 < img_w else hat_x2 - img_w 
+        tdy = 0 if hat_y1 >= 0 else 0 - hat_y1
+        bdy = 0 if hat_y2 < img_h else hat_y2 - img_h
+
+        hat_res = hat_res[tdy:hat_height-bdy,ldx:hat_width-rdx]
+        mask_res = mask_res[tdy:hat_height-bdy,ldx:hat_width-rdx]
+        mask_inv_res = mask_inv_res[tdy:hat_height-bdy,ldx:hat_width-rdx]
+
+        # apply masks to image
+        roi = img[hat_y1+tdy:hat_y2-bdy,hat_x1+ldx:hat_x2-rdx]
         roi_bg = cv2.bitwise_and(roi,roi,mask=mask_res)
         roi_fg = cv2.bitwise_and(hat_res,hat_res,mask=mask_inv_res)
         dst = cv2.add(roi_bg, roi_fg)
 
-        img[hat_y1:hat_y2,hat_x1:hat_x2] = dst
+        img[hat_y1+tdy:hat_y2-bdy,hat_x1+ldx:hat_x2-rdx] = dst
 
     if output_path == None:
         display_img(img)
