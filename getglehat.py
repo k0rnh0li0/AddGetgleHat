@@ -12,6 +12,7 @@ def display_img(img):
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
+    print("I AM K0RNH0LI0!")
     if len(sys.argv) < 2 or len(sys.argv) > 3:
         print("Usage: ./getglehat.py <input img> [output img]")
         exit()
