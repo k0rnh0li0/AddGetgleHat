@@ -15,18 +15,13 @@ def display_img(img):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def add_hat(img, hat):
+def add_hat(img, hat, hat_gray, original_mask, original_mask_inv):
     # image dimensions
     img_h, img_w, img_channels = img.shape
     hat_h, hat_w, hat_channels = hat.shape
 
     # convert images to grayscale
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    hat_gray = cv2.cvtColor(hat, cv2.COLOR_BGR2GRAY)
-
-    # create mask and inverse of hat
-    ret, original_mask = cv2.threshold(hat_gray, 10, 255, cv2.THRESH_BINARY_INV)
-    original_mask_inv = cv2.bitwise_not(original_mask)
 
     # find faces
     faces = cascade_face.detectMultiScale(img_gray, 1.3, 5)
@@ -96,23 +91,48 @@ def add_hat(img, hat):
 
 if __name__ == "__main__":
     print("I AM K0RNH0LI0!")
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: ./getglehat.py <input img> [output img]")
+    if len(sys.argv) > 3:
+        print("Usage: ./getglehat.py [input img] [output img]")
         exit()
 
-    input_path = sys.argv[1]
+    # load hat
+    hat = cv2.imread("hat.png")
+    hat_gray = cv2.cvtColor(hat, cv2.COLOR_BGR2GRAY)
+    # create mask and inverse of hat
+    ret, original_mask = cv2.threshold(hat_gray, 10, 255, cv2.THRESH_BINARY_INV)
+    original_mask_inv = cv2.bitwise_not(original_mask)
+
+    input_path = None
     output_path = None
 
-    if len(sys.argv) == 3:
-        output_path = sys.argv[2]
+    if len(sys.argv) > 1:
+        input_path = sys.argv[1]
 
-    # load images
-    img = cv2.imread(input_path)
-    hat = cv2.imread("hat.png")
+    if input_path is None:
+        # webcam mode
+        cap = cv2.VideoCapture(0)
+        ret, img = cap.read()
+        img_h, img_w = img.shape[:2]
 
-    img = add_hat(img, hat)
-
-    if output_path == None:
-        display_img(img)
+        while True:
+            ret, img = cap.read()
+            img = add_hat(img, hat, hat_gray, original_mask, original_mask_inv)
+            cv2.imshow('img', img)
+            if cv2.waitKey(1) == ord('q'):
+                break
+        cap.release()
+        cv2.destroyAllWindows()
     else:
-        cv2.imwrite(output_path, img)
+        # normal mode - add getgle hats to a static image
+        if len(sys.argv) == 3:
+            output_path = sys.argv[2]
+
+        # load image
+        img = cv2.imread(input_path)
+
+        img = add_hat(img, hat, hat_gray, original_mask, original_mask_inv)
+
+        if output_path == None:
+            display_img(img)
+        else:
+            cv2.imwrite(output_path, img)
