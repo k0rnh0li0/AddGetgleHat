@@ -10,7 +10,10 @@ This script is very easy to use.
 
 1. Clone this repository.
 2. Install libs: `python -m pip install -r requirements.txt`
-3. Run the script: `./getglehat.py <input img> [output img]`
+3. Run the script: `./getglehat.py [input img] [output img]`
+
+If you don't specify an input image, the script will run in webcam mode. It
+will attempt to open your webcam and add images to faces in real time.
 
 If no output image is specified, the script will just display the image without
 saving it.
