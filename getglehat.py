@@ -6,31 +6,16 @@ import math
 import cv2
 import numpy as np
 
+# load classifiers
+cascade_face = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+cascade_eye = cv2.CascadeClassifier("haarcascade_eye.xml")
+
 def display_img(img):
     cv2.imshow('img', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    print("I AM K0RNH0LI0!")
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: ./getglehat.py <input img> [output img]")
-        exit()
-
-    input_path = sys.argv[1]
-    output_path = None
-
-    if len(sys.argv) == 3:
-        output_path = sys.argv[2]
-
-    # load classifiers
-    cascade_face = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-    cascade_eye = cv2.CascadeClassifier("haarcascade_eye.xml")
-
-    # load images
-    img = cv2.imread(input_path)
-    hat = cv2.imread("hat.png")
-
+def add_hat(img, hat):
     # image dimensions
     img_h, img_w, img_channels = img.shape
     hat_h, hat_w, hat_channels = hat.shape
@@ -91,7 +76,7 @@ if __name__ == "__main__":
 
         # clip hat img/masks to image edges
         ldx = 0 if hat_x1 >= 0 else 0 - hat_x1
-        rdx = 0 if hat_x2 < img_w else hat_x2 - img_w 
+        rdx = 0 if hat_x2 < img_w else hat_x2 - img_w
         tdy = 0 if hat_y1 >= 0 else 0 - hat_y1
         bdy = 0 if hat_y2 < img_h else hat_y2 - img_h
 
@@ -106,6 +91,26 @@ if __name__ == "__main__":
         dst = cv2.add(roi_bg, roi_fg)
 
         img[hat_y1+tdy:hat_y2-bdy,hat_x1+ldx:hat_x2-rdx] = dst
+
+    return img
+
+if __name__ == "__main__":
+    print("I AM K0RNH0LI0!")
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print("Usage: ./getglehat.py <input img> [output img]")
+        exit()
+
+    input_path = sys.argv[1]
+    output_path = None
+
+    if len(sys.argv) == 3:
+        output_path = sys.argv[2]
+
+    # load images
+    img = cv2.imread(input_path)
+    hat = cv2.imread("hat.png")
+
+    img = add_hat(img, hat)
 
     if output_path == None:
         display_img(img)
