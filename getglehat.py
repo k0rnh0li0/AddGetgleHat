@@ -36,30 +36,8 @@ def add_hat(img, hat, hat_gray, original_mask, original_mask_inv):
         hat_width = int(w*1.2)
         hat_height = int(hat_width * hat_h / hat_w)
 
-        # find slope between eyes to try to correct for head tilt
-        eye_tilt = 0
-        eye_roi = img[y:y+h,x:x+w]
-        eye_roi_gray = img_gray[y:y+h,x:x+w]
-        eyes = cascade_eye.detectMultiScale(eye_roi_gray)
-
-        EYE_ADJUST = 0
-
-        if len(eyes) == 2:
-            dx = eyes[1][0] - eyes[0][0]
-            dy = eyes[1][1] - eyes[0][1]
-            EYE_ADJUST = dx
-
-            if dx == 0:
-                eye_tilt = math.pi / 2
-            else:
-                eye_tilt = math.atan(dy / dx)
-
-        # find bounding rect for hat, adjusting for eye tilt
-        tilt_dx = int(math.cos(eye_tilt) * EYE_ADJUST)
-        tilt_dy = int(math.sin(eye_tilt) * EYE_ADJUST)
-
-        hat_x1 = face_x2 - int(w/2) - int(hat_width/2.25) + tilt_dx
-        hat_y1 = face_y1 - int(h*0.4) + tilt_dy
+        hat_x1 = face_x2 - int(w/2) - int(hat_width/2.25)
+        hat_y1 = face_y1 - int(h*0.4)
 
         hat_x2 = hat_x1 + hat_width
         hat_y2 = hat_y1 + hat_height
